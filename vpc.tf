@@ -29,6 +29,7 @@ resource "aws_subnet" "private_subnet" {
     count                   = length(var.private_subnets_cidrs)
     cidr_block              = element(var.private_subnets_cidrs, count.index)
     availability_zone       = element(var.availability_zones, count.index)
+    map_public_ip_on_launch = false
 
     tags = {
       Name = "Private-Subnet-${count.index + 1}"
@@ -123,12 +124,37 @@ resource "aws_internet_gateway" "internet_gateway" {
     }
 }
 
+### ELASTIC IP ###
+resource "aws_eip" "nat_eip" {
+  vpc        = true
+  depends_on = [aws_internet_gateway.internet_gateway]
+}
+
+### NAT GATEWAY ###
+resource "aws_nat_gateway" "nat_gateway" {
+  allocation_id = "${aws_eip.nat_eip.id}"
+  subnet_id     = "${element(aws_subnet.public_subnet.*.id, 0)}"
+  depends_on    = [aws_internet_gateway.internet_gateway]
+  tags = {
+    Name        = "NAT Gateway"
+  }
+}
+
 ### PUBLIC ROUTE TABLE ###
 resource "aws_route_table" "public_rt" {
     vpc_id = aws_vpc.main.id    
     
     tags = {
       Name = "Public Route Table"
+    }
+}
+
+### PRIVATE ROUTE TABLE ###
+resource "aws_route_table" "private_rt" {
+    vpc_id = aws_vpc.main.id    
+    
+    tags = {
+      Name = "Private Route Table"
     }
 }
 
@@ -140,9 +166,24 @@ resource "aws_route" "public_route" {
     depends_on             = [aws_route_table.public_rt]
 }
 
+### PRIVATE ROUTE ###
+resource "aws_route" "private_route" {
+    route_table_id         = aws_route_table.private_rt.id
+    destination_cidr_block = "0.0.0.0/0"
+    nat_gateway_id         = aws_nat_gateway.nat_gateway.id
+    depends_on             = [aws_route_table.private_rt]
+}
+
 ### PUBLIC ROUTE TABLE ASSOCIATION ###
 resource "aws_route_table_association" "public_rt_association" {
     count = length(var.public_subnets_cidrs)
-    subnet_id      = element(aws_subnet.private_subnet[*].id, count.index)
+    subnet_id      = element(aws_subnet.public_subnet[*].id, count.index)
     route_table_id = aws_route_table.public_rt.id
+}
+
+### PRIVATE ROUTE TABLE ASSOCIATION ###
+resource "aws_route_table_association" "private_rt_association" {
+    count = length(var.private_subnets_cidrs)
+    subnet_id      = element(aws_subnet.private_subnet[*].id, count.index)
+    route_table_id = aws_route_table.private_rt.id
 }

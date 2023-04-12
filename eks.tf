@@ -45,10 +45,10 @@ resource "aws_iam_role_policy_attachment" "EKS_VPC_Resource_Controller" {
 
 ### EKS NODES ###
 resource "aws_eks_node_group" "cluster_node" {
-  cluster_name    = aws_eks_cluster.project_cluster.name
-  node_group_name = "nginx_node"
-  node_role_arn   = aws_iam_role.eks_node_role.arn
-  subnet_ids      = aws_subnet.public_subnet[*].id
+  cluster_name            = aws_eks_cluster.project_cluster.name
+  node_group_name         = "nginx_node"
+  node_role_arn           = aws_iam_role.eks_node_role.arn
+  subnet_ids              = aws_subnet.private_subnet[*].id
 
   scaling_config {
     desired_size = 1
@@ -56,7 +56,10 @@ resource "aws_eks_node_group" "cluster_node" {
     min_size     = 1
   } 
 
-  instance_types  = ["t2.small"]
+  ami_type       = "AL2_x86_64"
+  instance_types = ["t2.small"]
+  capacity_type  = "ON_DEMAND"
+  disk_size      = 20
 
   update_config {
     max_unavailable = 2

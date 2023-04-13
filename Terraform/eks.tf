@@ -102,12 +102,3 @@ resource "aws_iam_role_policy_attachment" "EC2Container-Registry-ReadOnly" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
   role       = aws_iam_role.eks_node_role.name
 }
-
-### OUTPUTS ###
-output "eks-cluster-endpoint" {
-  value = aws_eks_cluster.project_cluster.endpoint
-}
-
-output "kubeconfig-certificate-authority-data" {
-  value = aws_eks_cluster.project_cluster.certificate_authority[0].data
-}

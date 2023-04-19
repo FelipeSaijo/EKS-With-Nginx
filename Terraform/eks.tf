@@ -1,7 +1,7 @@
 ### EKS CLUSTER ###
 resource "aws_eks_cluster" "project_cluster" {
-  name                    = "FS-Project-Cluster"
-  role_arn                = aws_iam_role.eks_cluster_role.arn
+  name                      = "FS-Project-Cluster"
+  role_arn                  = aws_iam_role.eks_cluster_role.arn
   
   vpc_config {
     subnet_ids  = [aws_subnet.public_subnet[0].id, aws_subnet.public_subnet[1].id]
@@ -57,7 +57,7 @@ resource "aws_eks_node_group" "cluster_node" {
   } 
 
   ami_type       = "AL2_x86_64"
-  instance_types = ["t2.small"]
+  instance_types = ["t3a.small"]
   capacity_type  = "ON_DEMAND"
   disk_size      = 20
 

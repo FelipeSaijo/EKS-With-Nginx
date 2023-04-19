@@ -1,6 +1,7 @@
 # Local .terraform directories
 **/.terraform/*
 **/hashicorp/*
+**/1P-screenshot/*
 # .tfstate files
 *.tfstate
 *.tfstate.*
@@ -34,3 +35,6 @@ Project-CheckList
 
 # Kubernetes files
 kubeconfig
+
+# One Plataform Agent
+1p-agent.yaml
